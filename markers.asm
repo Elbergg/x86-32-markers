@@ -22,22 +22,34 @@ markers:
     jmp exit
 
 find_black:
-    jmp get_pixel
-find_black_2:
+    mov eax, [ebp-12]
+    mov ebx, [ebp-8]
+    cmp ebx, WIDTH
+    je next_row
+    mov ecx, DWORD[ebp+8]
+    call get_pixel
+    cmp bl, 0
+    je go_right
+    inc DWORD[ebp-8]
+    jmp find_black
+
+next_row:
+    inc DWORD[ebp-12]
+    mov DWORD[ebp-8], 0
+    jmp find_black
+
+go_right:
     jmp exit
 
 
 
-
-
-
 get_pixel:
-    mov eax, [ebp-8]
+    push ebp
+    mov ebp, esp
     imul eax, WIDTH
-    mov ebx, [ebp-12]
     add eax, ebx
     imul eax, 3
-    add eax, DWORD[ebp+8]
+    add eax, ecx
     mov ebx, 0
     add bl, BYTE[eax]
     inc eax
@@ -45,7 +57,9 @@ get_pixel:
     inc eax
     add bl, BYTE[eax]
     inc eax
-    jmp find_black_2
+    mov esp, ebp
+    pop ebp
+    ret
 exit:
     pop esi
     pop edi
