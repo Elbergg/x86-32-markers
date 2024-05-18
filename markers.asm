@@ -64,5 +64,6 @@ exit:
     pop esi
     pop edi
     pop ebx
+    mov esp, ebp
     pop ebp
     ret
