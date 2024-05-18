@@ -7,7 +7,7 @@ global markers
 markers:
     push ebp
     mov ebp, esp
-    sub esp, 32
+    sub esp, 36
     push ebx
     push edi
     push esi
@@ -21,6 +21,7 @@ markers:
     mov DWORD[ebp-24], 0 ;return y cord
     mov DWORD[ebp-28], 0 ;height
     mov DWORD[ebp-32], 0 ;saved y cord
+    mov DWORD[ebp-36], 0 ;
     jmp find_black
     jmp exit
 
@@ -125,11 +126,72 @@ end_up:
     jmp right_frame
 
 right_frame:
-    jmp exit
+    mov eax, [ebp-24]
+    mov [ebp-12], eax
+    inc DWORD[ebp-8]
+
+rf_loop:
+    mov ebx, [ebp-8]
+    mov eax, [ebp-12]
+    cmp eax, [ebp-32]
+    je end_rf
+    call get_pixel
+    inc DWORD[ebp-12]
+    cmp bl, 0
+    je not_found
+    jmp rf_loop
+
+end_rf:
+    dec DWORD[ebp-8]
+    jmp go_left
+
 
 go_left:
+    dec DWORD[ebp-12]
+    shl edi, 1
+    mov esi, [ebp-8]
+    sub esi, edi
+    inc esi
+    mov [ebp-36], esi
+    shr edi, 1
+
+left_loop:
+    mov ebx, [ebp-8]
+    mov eax, [ebp-12]
+    mov esi, eax
+    mov edi, ebx
+    call get_pixel
+    cmp bl, 0
+    jne up_right_frame
+    call cd
+    dec DWORD[ebp-8]
+    jmp left_loop
+
+up_right_frame:
     jmp exit
 
+cd:
+    push ebp
+    mov ebp, esp
+    push eax
+    push ebx
+cd_loop:
+    dec esi
+    mov ebx, edi
+    mov eax, esi
+    cmp eax, [ebp-24]
+    je end_cd
+    call get_pixel
+    cmp bl, 0
+    jne not_found
+    jmp cd_loop
+
+end_cd:
+    pop ebx
+    pop eax
+    mov esp, ebp
+    pop ebp
+    ret
 
 get_pixel:
     push ebp
