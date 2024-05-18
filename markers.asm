@@ -7,7 +7,7 @@ global markers
 markers:
     push ebp
     mov ebp, esp
-    sub esp, 56
+    sub esp, 64
     push ebx
     push edi
     push esi
@@ -27,6 +27,10 @@ markers:
     mov DWORD[ebp-48], 0 ; arm_width
     mov DWORD[ebp-52], 0 ; a point at which the inner arms should intersect
     mov DWORD[ebp-56], 0 ; saved x cord in left again
+    mov DWORD[ebp-60], 0 ; saved y cord in da
+    mov DWORD[ebp-64], 0 ; x cord of inner intersection
+    mov eax, [ebp+12]
+    mov DWORD[ebp-68], eax
     jmp find_black
     jmp exit
 
@@ -45,6 +49,9 @@ find_black:
 next_row:
     inc DWORD[ebp-12]
     mov DWORD[ebp-8], 0
+    mov eax, [ebp-12]
+    cmp eax, HEIGHT
+    je exit
     jmp find_black
 
 go_right:
@@ -98,8 +105,6 @@ end_bf:
     shr edi, 1
     jmp go_up
 
-not_found:
-    jmp exit
 
 
 go_up:
@@ -263,9 +268,90 @@ laf_loop:
     jmp laf_loop
 
 down_again:
-    jmp exit
+    dec DWORD[ebp-12]
+    mov eax, [ebp-12]
+    mov [ebp-60], eax
+da_loop:
+    mov ebx, [ebp-8]
+    mov eax, [ebp-12]
+    cmp eax, [ebp-24]
+    je da_frame
+    call get_pixel
+    cmp bl, 0
+    jne not_found
+    mov edi, [ebp-8]
+    mov esi, [ebp-12]
+    call cr
+    dec DWORD[ebp-12]
+    jmp da_loop
 
 
+cr:
+    push ebp
+    mov ebp, esp
+    push eax
+    push ebx
+    mov eax, [ebp-20]
+    sub eax, [ebp-48]
+    mov [ebp-64], eax
+cr_loop:
+    inc edi
+    mov ebx, edi
+    mov eax, esi
+    cmp ebx, [ebp-64]
+    je end_cr
+    call get_pixel
+    cmp bl, 0
+    jne not_found
+    jmp cd_loop
+
+
+end_cr:
+    pop ebx
+    pop eax
+    mov esp, ebp
+    pop ebp
+    ret
+
+
+da_frame:
+    mov ebx, [ebp-8]
+    mov eax, [ebp-12]
+    cmp ebx, 0
+    je marker_found
+    mov eax, [ebp-60]
+    mov [ebp-12], eax
+    dec DWORD[ebp-8]
+daf_loop:
+    mov ebx, [ebp-8]
+    mov eax, [ebp-12]
+    cmp eax, [ebp-24]
+    je marker_found
+    call get_pixel
+    cmp bl, 0
+    je not_found
+    dec DWORD[ebp-12]
+    jmp daf_loop
+
+marker_found:
+    mov eax, [ebp-68]
+    mov ebx, [ebp-20]
+    mov BYTE[eax], bl
+    inc DWORD[ebp-68]
+    inc eax
+    mov ebx, [ebp-24]
+    mov BYTE[eax], bl
+    inc DWORD[ebp-68]
+    inc eax
+    jmp not_found
+
+not_found:
+    inc DWORD[ebp-20]
+    mov eax, [ebp-20]
+    mov [ebp-8], eax
+    mov eax, [ebp-24]
+    mov [ebp-12], eax
+    jmp find_black
 
 
 cd:
