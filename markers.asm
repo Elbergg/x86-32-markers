@@ -7,7 +7,7 @@ global markers
 markers:
     push ebp
     mov ebp, esp
-    sub esp, 36
+    sub esp, 52
     push ebx
     push edi
     push esi
@@ -22,6 +22,10 @@ markers:
     mov DWORD[ebp-28], 0 ;height
     mov DWORD[ebp-32], 0 ;saved y cord
     mov DWORD[ebp-36], 0 ;
+    mov DWORD[ebp-40], 0 ; saved x cord in urf
+    mov DWORD[ebp-44], 0 ;saved y cord in down loop
+    mov DWORD[ebp-48], 0 ; arm_width
+    mov DWORD[ebp-52], 0 ; a point at which the inner arms should intersect
     jmp find_black
     jmp exit
 
@@ -168,7 +172,71 @@ left_loop:
     jmp left_loop
 
 up_right_frame:
+    mov ebx, [ebp-8]
+    mov [ebp-40], ebx
+    mov ebx, [ebp-20]
+    mov [ebp-8], ebx
+    inc DWORD[ebp-12]
+
+urf_loop:
+    mov ebx, [ebp-8]
+    mov eax, [ebp-12]
+    cmp ebx, [ebp-40]
+    je go_down
+    cmp eax, HEIGHT
+    je go_down_border
+    call get_pixel
+    cmp bl, 0
+    je not_found
+    dec DWORD[ebp-8]
+    jmp urf_loop
+
+go_down_border:
+    mov ebx, [ebp-40]
+    mov [ebp-8], ebx
+go_down:
+    inc DWORD[ebp-8]
+    dec DWORD[ebp-12]
+    mov ebx, [ebp-8]
+    mov eax, [ebp-12]
+    mov [ebp-44], eax
+    mov esi, [ebp-20]
+    sub esi, [ebp-8]
+    mov [ebp-48], esi
+    mov edi, [ebp-24]
+    add edi, [ebp-48]
+    mov [ebp-52], edi
+
+down_loop:
+    mov ebx, [ebp-8]
+    mov eax, [ebp-12]
+    cmp eax, [ebp-52]
+    je up_left_frame
+    call get_pixel
+    cmp bl, 0
+    jne not_found
+    dec DWORD[ebp-12]
+    jmp down_loop
+
+up_left_frame:
+    dec DWORD[ebp-8]
+    mov eax, [ebp-44]
+    mov [ebp-12], eax
+ulf_loop:
+    mov ebx, [ebp-8]
+    mov eax, [ebp-12]
+    cmp eax, [ebp-52]
+    je left_again
+    call get_pixel
+    cmp bl, 0
+    je not_found
+    dec DWORD[ebp-12]
+    jmp ulf_loop
+
+left_again:
     jmp exit
+
+
 
 cd:
     push ebp
