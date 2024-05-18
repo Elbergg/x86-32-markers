@@ -7,10 +7,11 @@ global markers
 markers:
     push ebp
     mov ebp, esp
-    sub esp, 64
+    sub esp, 68
     push ebx
     push edi
     push esi
+    push edx
    ; mov ecx, DWORD[ebp+20] ;file
    ; mov edi, DWORD[ebp+24] ;output
     mov DWORD[ebp-4], 0 ;marker counter
@@ -164,6 +165,7 @@ go_left:
     inc esi
     mov [ebp-36], esi
     shr edi, 1
+    mov edx, [ebp-24]
 
 left_loop:
     mov ebx, [ebp-8]
@@ -281,6 +283,9 @@ da_loop:
     jne not_found
     mov edi, [ebp-8]
     mov esi, [ebp-12]
+    mov edx, [ebp-20]
+    sub edx, [ebp-48]
+    mov [ebp-64], edx
     call cr
     dec DWORD[ebp-12]
     jmp da_loop
@@ -291,19 +296,17 @@ cr:
     mov ebp, esp
     push eax
     push ebx
-    mov eax, [ebp-20]
-    sub eax, [ebp-48]
-    mov [ebp-64], eax
+
 cr_loop:
     inc edi
     mov ebx, edi
     mov eax, esi
-    cmp ebx, [ebp-64]
+    cmp ebx, edx
     je end_cr
     call get_pixel
     cmp bl, 0
     jne not_found
-    jmp cd_loop
+    jmp cr_loop
 
 
 end_cr:
@@ -363,7 +366,7 @@ cd_loop:
     dec esi
     mov ebx, edi
     mov eax, esi
-    cmp eax, [ebp-24]
+    cmp eax, edx
     je end_cd
     call get_pixel
     cmp bl, 0
@@ -395,6 +398,7 @@ get_pixel:
     pop ebp
     ret
 exit:
+    pop edx
     pop esi
     pop edi
     pop ebx

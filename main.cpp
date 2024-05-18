@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <fstream>
+#include <string>
 
 #include <stdio.h>
 #include <string.h>
@@ -33,5 +34,17 @@ int main(int argc, char *argv[])
     fileHandler.read(image, 3 * numOfPix);
     char output[250] = {0};
     int numOfMarkers = markers(image, output);
+    for (size_t i = 0; output[i] != '\0'; ++i)
+    {
+        std::string result;
+        result += '(';
+        result += std::to_string(output[i]);
+        result += ',';
+
+        ++i;
+        result += std::to_string(output[i]);
+        result += ')';
+        std::cout << result << std::endl;
+    }
     return 0;
 }
