@@ -1,5 +1,6 @@
 %define WIDTH 320
 %define HEIGHT 240
+%define TOP_BORDER 319
 %define RIGHT_BORDER 319
 
 section .text
@@ -305,7 +306,7 @@ cr_loop:
     je end_cr
     call get_pixel
     cmp bl, 0
-    jne not_found
+    jne not_found_cr
     jmp cr_loop
 
 
@@ -317,6 +318,12 @@ end_cr:
     ret
 
 
+not_found_cr:
+    pop ebx
+    pop eax
+    mov esp, ebp
+    pop ebp
+    jmp not_found
 da_frame:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
@@ -337,6 +344,7 @@ daf_loop:
     jmp daf_loop
 
 marker_found:
+    inc DWORD[ebp-4]
     mov eax, [ebp-68]
     mov ebx, [ebp-20]
     mov DWORD[eax], ebx
@@ -384,7 +392,7 @@ cd_loop:
     je end_cd
     call get_pixel
     cmp bl, 0
-    jne not_found
+    jne not_found_cd
     jmp cd_loop
 
 end_cd:
@@ -393,6 +401,15 @@ end_cd:
     mov esp, ebp
     pop ebp
     ret
+
+not_found_cd:
+    pop ebx
+    pop eax
+    mov esp, ebp
+    pop ebp
+    add esp, 4
+    jmp not_found
+
 
 get_pixel:
     push ebp
@@ -412,6 +429,7 @@ get_pixel:
     pop ebp
     ret
 exit:
+    mov eax, [ebp-4]
     pop edx
     pop esi
     pop edi

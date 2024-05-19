@@ -34,12 +34,15 @@ int main(int argc, char *argv[])
     fileHandler.read(image, 3 * numOfPix);
     unsigned int output[400] = {0};
     int numOfMarkers = markers(image, output);
-    for (size_t i = 0; output[i] != '\0'; ++i)
+    if (numOfMarkers != 0)
     {
-        std::cout << "Marker found!: ";
-        std::cout << '(' << (output[i]) << ',';
-        ++i;
-        std::cout << (output[i]) << ')' << std::endl;
+        for (size_t i = 0; output[i] != '\0'; ++i)
+        {
+            std::cout << "Marker found!: ";
+            std::cout << '(' << (output[i]) << ',';
+            ++i;
+            std::cout << (output[i]) << ')' << std::endl;
+        }
     }
     return 0;
 }
