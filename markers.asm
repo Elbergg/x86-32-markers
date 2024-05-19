@@ -1,6 +1,6 @@
 %define WIDTH 320
 %define HEIGHT 240
-
+%define RIGHT_BORDER 319
 
 section .text
 global markers
@@ -132,8 +132,8 @@ end_up:
     cmp bl, 0
     je not_found
     mov ebx, [ebp-8]
-    cmp ebx, WIDTH
-    jg go_left
+    cmp ebx, RIGHT_BORDER
+    je go_left
     jmp right_frame
 
 right_frame:
@@ -339,13 +339,14 @@ daf_loop:
 marker_found:
     mov eax, [ebp-68]
     mov ebx, [ebp-20]
-    mov BYTE[eax], bl
-    inc DWORD[ebp-68]
-    inc eax
-    mov ebx, [ebp-24]
-    mov BYTE[eax], bl
-    inc DWORD[ebp-68]
-    inc eax
+    mov DWORD[eax], ebx
+    add DWORD[ebp-68], 4
+    add eax, 4
+    mov ebx, 239
+    sub ebx, [ebp-24]
+    mov DWORD[eax], ebx
+    add DWORD[ebp-68], 4
+    add eax, 4
     jmp not_found
 
 not_found:
@@ -354,6 +355,19 @@ not_found:
     mov [ebp-8], eax
     mov eax, [ebp-24]
     mov [ebp-12], eax
+    mov DWORD[ebp-16], 0 ;bottom length
+    mov DWORD[ebp-20], 0 ;return x cord
+    mov DWORD[ebp-24], 0 ;return y cord
+    mov DWORD[ebp-28], 0 ;height
+    mov DWORD[ebp-32], 0 ;saved y cord
+    mov DWORD[ebp-36], 0 ;left x cord
+    mov DWORD[ebp-40], 0 ; saved x cord in urf
+    mov DWORD[ebp-44], 0 ;saved y cord in down loop
+    mov DWORD[ebp-48], 0 ; arm_width
+    mov DWORD[ebp-52], 0 ; a point at which the inner arms should intersect
+    mov DWORD[ebp-56], 0 ; saved x cord in left again
+    mov DWORD[ebp-60], 0 ; saved y cord in da
+    mov DWORD[ebp-64], 0 ; x cord of inner intersection
     jmp find_black
 
 
