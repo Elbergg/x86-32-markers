@@ -16,10 +16,10 @@ int main(int argc, char *argv[])
     std::ifstream fileHandler;
     fileHandler.open(fname, std::ios::binary);
     if (fileHandler.good())
-        std::cout << "Otwarto plik...\n";
+        std::cout << "File opened succesfully\n";
     else
     {
-        std::cout << "Unable to open file\n";
+        std::cout << "Error when opening file\n";
         return -2;
     }
     char header[HEADER_SIZE];
@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
             ++i;
             std::cout << (output[i]) << ')' << std::endl;
         }
+        std::cout << "Number of markers: " << numOfMarkers << std::endl;
     }
     return 0;
 }

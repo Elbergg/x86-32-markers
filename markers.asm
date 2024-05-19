@@ -127,7 +127,7 @@ end_up:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp eax, HEIGHT
-    jg go_left
+    je go_left
     mov [ebp-32], eax
     call get_pixel
     cmp bl, 0
@@ -323,6 +323,7 @@ not_found_cr:
     pop eax
     mov esp, ebp
     pop ebp
+    add esp, 4
     jmp not_found
 da_frame:
     mov ebx, [ebp-8]
