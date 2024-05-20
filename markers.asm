@@ -13,8 +13,6 @@ markers:
     push edi
     push esi
     push edx
-   ; mov ecx, DWORD[ebp+20] ;file
-   ; mov edi, DWORD[ebp+24] ;output
     mov DWORD[ebp-4], 0 ;marker counter
     mov DWORD[ebp-8], 0 ;x coord
     mov DWORD[ebp-12], 0 ;y cord
