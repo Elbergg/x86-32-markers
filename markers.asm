@@ -95,43 +95,43 @@ b_loop:
 
 
 end_bf:
-    mov ebx, [ebp-20]
+    mov ebx, [ebp-20] ;change x and y coords to return values
     mov eax, [ebp-24]
     mov [ebp-8], ebx
     mov [ebp-12], eax
     mov edi, [ebp-16]
     test edi, 1
-    jnz not_found
-    shr edi, 1
+    jnz not_found ;if length is not an even number not found  
+    shr edi, 1 ;divide length by 2 
     jmp go_up
 
 
 
 go_up:
-    inc DWORD[ebp-28]
-    mov ebx, [ebp-8]
+    inc DWORD[ebp-28] ; inc height counter
+    mov ebx, [ebp-8] 
     mov eax, [ebp-12]
-    call get_pixel
+    call get_pixel 
     cmp bl, 0
-    jne not_found
-    cmp [ebp-28], edi
+    jne not_found ; if pixel not black go not found
+    cmp [ebp-28], edi ; check if 
     je end_up
     inc DWORD[ebp-12]
     jmp go_up
 
 
 end_up:
-    inc DWORD[ebp-12]
+    inc DWORD[ebp-12] ; go one row up
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
-    cmp eax, HEIGHT
+    cmp eax, HEIGHT ; check if we are at top, if so just go left
     je go_left
-    mov [ebp-32], eax
-    call get_pixel
+    mov [ebp-32], eax ; save y cord
+    call get_pixel ;check if pixel above is black
     cmp bl, 0
-    je not_found
+    je not_found ;if its black not found
     mov ebx, [ebp-8]
-    cmp ebx, RIGHT_BORDER
+    cmp ebx, RIGHT_BORDER ; if we are at the right border go left
     je go_left
     jmp right_frame
 
