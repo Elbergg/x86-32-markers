@@ -30,27 +30,27 @@ markers:
     mov DWORD[ebp-60], 0 ; saved y cord in da
     mov DWORD[ebp-64], 0 ; x cord of inner intersection
     mov eax, [ebp+12]
-    mov DWORD[ebp-68], eax
+    mov DWORD[ebp-68], eax ;address of output buffer
     jmp find_black
     jmp exit
 
 find_black:
-    mov eax, [ebp-12]
-    mov ebx, [ebp-8]
-    cmp ebx, WIDTH
-    je next_row
-    mov ecx, DWORD[ebp+8]
-    call get_pixel
-    cmp bl, 0
-    je go_right
-    inc DWORD[ebp-8]
+    mov eax, [ebp-12] ;load eax with y cord
+    mov ebx, [ebp-8] ;load ebx with x cord
+    cmp ebx, WIDTH ;check if reached right border
+    je next_row ;if so go one row up
+    mov ecx, DWORD[ebp+8] ;load ecx with address of bmp buffer
+    call get_pixel ;check pixel under current ebx, eax coords
+    cmp bl, 0 ;check if its black
+    je go_right ;if so go right
+    inc DWORD[ebp-8] ;go to the right
     jmp find_black
 
 next_row:
-    inc DWORD[ebp-12]
-    mov DWORD[ebp-8], 0
+    inc DWORD[ebp-12] ;inc y coord
+    mov DWORD[ebp-8], 0 ;reset x cord
     mov eax, [ebp-12]
-    cmp eax, HEIGHT
+    cmp eax, HEIGHT ;if reached the top exit
     je exit
     jmp find_black
 
@@ -58,25 +58,25 @@ go_right:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp ebx, WIDTH
-    je end_right
+    je end_right ;if right border end_right
     call get_pixel
     cmp bl, 0
-    jne end_right
-    inc DWORD[ebp-16]
-    inc DWORD[ebp-8]
+    jne end_right ;if pixel not black  end_right
+    inc DWORD[ebp-16] ;inc length counter
+    inc DWORD[ebp-8] ;go right
     jmp go_right
 
 
 end_right:
-    dec DWORD[ebp-8]
+    dec DWORD[ebp-8] ;move one to the left
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
-    mov [ebp-20], ebx
+    mov [ebp-20], ebx ;save return x and y coords
     mov [ebp-24], eax
 bottom_frame:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
-    cmp eax, 0
+    cmp eax, 0 ;if we are at the bottom end bf
     je end_bf
     sub ebx, [ebp-16]
     inc ebx
@@ -86,10 +86,10 @@ b_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp ebx, [ebp-20]
-    jg end_bf
+    jg end_bf ;if we reached the return x cord 
     call get_pixel
     cmp bl, 0
-    je not_found
+    je not_found ;if pixel is black not found
     inc DWORD[ebp-8]
     jmp b_loop
 
