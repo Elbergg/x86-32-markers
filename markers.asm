@@ -13,8 +13,6 @@ markers:
     push edi
     push esi
     push edx
-   ; mov ecx, DWORD[ebp+20] ;file
-   ; mov edi, DWORD[ebp+24] ;output
     mov DWORD[ebp-4], 0 ;marker counter
     mov DWORD[ebp-8], 0 ;x coord
     mov DWORD[ebp-12], 0 ;y cord
@@ -32,27 +30,27 @@ markers:
     mov DWORD[ebp-60], 0 ; saved y cord in da
     mov DWORD[ebp-64], 0 ; x cord of inner intersection
     mov eax, [ebp+12]
-    mov DWORD[ebp-68], eax
+    mov DWORD[ebp-68], eax ;address of output buffer
     jmp find_black
     jmp exit
 
 find_black:
-    mov eax, [ebp-12]
-    mov ebx, [ebp-8]
-    cmp ebx, WIDTH
-    je next_row
-    mov ecx, DWORD[ebp+8]
-    call get_pixel
-    cmp bl, 0
-    je go_right
-    inc DWORD[ebp-8]
+    mov eax, [ebp-12] ;load eax with y cord
+    mov ebx, [ebp-8] ;load ebx with x cord
+    cmp ebx, WIDTH ;check if reached right border
+    je next_row ;if so go one row up
+    mov ecx, DWORD[ebp+8] ;load ecx with address of bmp buffer
+    call get_pixel ;check pixel under current ebx, eax coords
+    cmp bl, 0 ;check if its black
+    je go_right ;if so go right
+    inc DWORD[ebp-8] ;go to the right
     jmp find_black
 
 next_row:
-    inc DWORD[ebp-12]
-    mov DWORD[ebp-8], 0
+    inc DWORD[ebp-12] ;inc y coord
+    mov DWORD[ebp-8], 0 ;reset x cord
     mov eax, [ebp-12]
-    cmp eax, HEIGHT
+    cmp eax, HEIGHT ;if reached the top exit
     je exit
     jmp find_black
 
@@ -60,25 +58,25 @@ go_right:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp ebx, WIDTH
-    je end_right
+    je end_right ;if right border end_right
     call get_pixel
     cmp bl, 0
-    jne end_right
-    inc DWORD[ebp-16]
-    inc DWORD[ebp-8]
+    jne end_right ;if pixel not black  end_right
+    inc DWORD[ebp-16] ;inc length counter
+    inc DWORD[ebp-8] ;go right
     jmp go_right
 
 
 end_right:
-    dec DWORD[ebp-8]
+    dec DWORD[ebp-8] ;move one to the left
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
-    mov [ebp-20], ebx
+    mov [ebp-20], ebx ;save return x and y coords
     mov [ebp-24], eax
 bottom_frame:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
-    cmp eax, 0
+    cmp eax, 0 ;if we are at the bottom end bf
     je end_bf
     sub ebx, [ebp-16]
     inc ebx
@@ -88,52 +86,52 @@ b_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp ebx, [ebp-20]
-    jg end_bf
+    jg end_bf ;if we reached the return x cord 
     call get_pixel
     cmp bl, 0
-    je not_found
+    je not_found ;if pixel is black not found
     inc DWORD[ebp-8]
     jmp b_loop
 
 
 end_bf:
-    mov ebx, [ebp-20]
+    mov ebx, [ebp-20] ;change x and y coords to return values
     mov eax, [ebp-24]
     mov [ebp-8], ebx
     mov [ebp-12], eax
     mov edi, [ebp-16]
     test edi, 1
-    jnz not_found
-    shr edi, 1
+    jnz not_found ;if length is not an even number not found  
+    shr edi, 1 ;divide length by 2 
     jmp go_up
 
 
 
 go_up:
-    inc DWORD[ebp-28]
-    mov ebx, [ebp-8]
+    inc DWORD[ebp-28] ; inc height counter
+    mov ebx, [ebp-8] 
     mov eax, [ebp-12]
-    call get_pixel
+    call get_pixel 
     cmp bl, 0
-    jne not_found
-    cmp [ebp-28], edi
+    jne not_found ; if pixel not black go not found
+    cmp [ebp-28], edi ; check if 
     je end_up
     inc DWORD[ebp-12]
     jmp go_up
 
 
 end_up:
-    inc DWORD[ebp-12]
+    inc DWORD[ebp-12] ; go one row up
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
-    cmp eax, HEIGHT
+    cmp eax, HEIGHT ; check if we are at top, if so just go left
     je go_left
-    mov [ebp-32], eax
-    call get_pixel
+    mov [ebp-32], eax ; save y cord
+    call get_pixel ;check if pixel above is black
     cmp bl, 0
-    je not_found
+    je not_found ;if its black not found
     mov ebx, [ebp-8]
-    cmp ebx, RIGHT_BORDER
+    cmp ebx, RIGHT_BORDER ; if we are at the right border go left
     je go_left
     jmp right_frame
 
