@@ -10,7 +10,7 @@
 #define WIDTH 320
 #define BYTES_PER_ROW 960
 #define HEADER_SIZE 54
-extern "C" int markers(char *bmp, unsigned int *output);
+extern "C" int markers(char *bmp, unsigned int *x_pos, unsigned int *y_pos);
 int main(int argc, char *argv[])
 {
     std::ifstream fileHandler;
@@ -25,23 +25,20 @@ int main(int argc, char *argv[])
     char header[HEADER_SIZE];
     fileHandler.read(header, HEADER_SIZE);
     uint32_t numOfPix = HEIGHT * WIDTH;
-    auto fileSize = *reinterpret_cast<uint32_t *>(&header[2]);
     auto dataOffset = *reinterpret_cast<uint32_t *>(&header[10]);
-    auto width = *reinterpret_cast<uint32_t *>(&header[18]);
-    auto height = *reinterpret_cast<uint32_t *>(&header[22]);
     fileHandler.seekg(dataOffset);
-    char image[3 * numOfPix];
-    fileHandler.read(image, 3 * numOfPix);
-    unsigned int output[400] = {0};
-    int numOfMarkers = markers(image, output);
+    char bitmap[3 * numOfPix];
+    fileHandler.read(bitmap, 3 * numOfPix);
+    unsigned int x_pos[200] = {0};
+    unsigned int y_pos[200] = {0};
+    int numOfMarkers = markers(bitmap, x_pos, y_pos);
     if (numOfMarkers != 0)
     {
-        for (size_t i = 0; output[i] != '\0'; ++i)
+        for (size_t i = 0; x_pos != '\0'; ++i)
         {
             std::cout << "Marker found!: ";
-            std::cout << '(' << (output[i]) << ',';
-            ++i;
-            std::cout << (output[i]) << ')' << std::endl;
+            std::cout << '(' << (x_pos[i]) << ',';
+            std::cout << (y_pos[i]) << ')' << std::endl;
         }
         std::cout << "Number of markers: " << numOfMarkers << std::endl;
     }
