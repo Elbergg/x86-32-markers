@@ -138,75 +138,77 @@ end_up:
     jmp right_frame
 
 right_frame:
-    mov eax, [ebp-24]
+    mov eax, [ebp-24] ;load saved t5 value into a1
     mov [ebp-12], eax
-    inc DWORD[ebp-8]
+    inc DWORD[ebp-8] ;increment x coordinate by 1
 
 rf_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp eax, [ebp-32]
-    je end_rf
-    call get_pixel
-    inc DWORD[ebp-12]
-    cmp bl, 0
+    je end_rf ;if y coordinate equal to saved a5, end right frame
+    call get_pixel ;get color of pixel at a0,a1
+    inc DWORD[ebp-12] ;go one row up
+    cmp bl, 0 ;if pixel is black, not found
     je not_found
     jmp rf_loop
 
 end_rf:
-    dec DWORD[ebp-8]
+    dec DWORD[ebp-8] ;dec x coord
     jmp go_left
 
 
 go_left:
-    dec DWORD[ebp-12]
-    shl edi, 1
+    dec DWORD[ebp-12] ;dec row by one
+    shl edi, 1 ;bottom length
     mov esi, [ebp-8]
-    sub esi, edi
-    inc esi
+    sub esi, edi ;main_X - bl
+    inc esi ;correction
     mov [ebp-36], esi
-    shr edi, 1
+    shr edi, 1 ;divide s6 by 2
     mov edx, [ebp-24]
 
 left_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
+    cmp ebx, [ebp-36] ;not square
+    jle not_found
     mov esi, eax
     mov edi, ebx
     call get_pixel
     cmp bl, 0
-    jne up_right_frame
-    call cd
-    dec DWORD[ebp-8]
+    jne up_right_frame ;if not black, check ur frame
+    call cd ;check if all the pixels beneath the current one are black as well
+    dec DWORD[ebp-8] ;go left
     jmp left_loop
 
 up_right_frame:
-    mov ebx, [ebp-8]
+    mov ebx, [ebp-8]  ;load x and y with saved cords
     mov [ebp-40], ebx
     mov ebx, [ebp-20]
     mov [ebp-8], ebx
-    inc DWORD[ebp-12]
+    inc DWORD[ebp-12] ;go one row up
 
 urf_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
-    cmp ebx, [ebp-40]
+    cmp ebx, [ebp-40] ;if reached end of urf, go down
     je go_down
     cmp eax, HEIGHT
     je go_down_border
-    call get_pixel
+    call get_pixel ;if pixel is black, not found
     cmp bl, 0
     je not_found
-    dec DWORD[ebp-8]
+    dec DWORD[ebp-8] ;go left
     jmp urf_loop
 
 go_down_border:
     mov ebx, [ebp-40]
     mov [ebp-8], ebx
 go_down:
-    inc DWORD[ebp-8]
-    dec DWORD[ebp-12]
-    mov ebx, [ebp-8]
+    inc DWORD[ebp-8] ;correct x coord
+    dec DWORD[ebp-12] ;correct y coord
+    mov ebx, [ebp-8] ;save y cord
     mov eax, [ebp-12]
     mov [ebp-44], eax
     mov esi, [ebp-20]
@@ -214,81 +216,81 @@ go_down:
     mov [ebp-48], esi
     mov edi, [ebp-24]
     add edi, [ebp-48]
-    mov [ebp-52], edi
+    mov [ebp-52], edi ;a point at which inner arms should intersect
 
 down_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp eax, [ebp-52]
-    je up_left_frame
+    je up_left_frame ;if that point is reached, go to ulf
     call get_pixel
-    cmp bl, 0
+    cmp bl, 0 ;if pixel not black, not found
     jne not_found
-    dec DWORD[ebp-12]
+    dec DWORD[ebp-12] ;go down
     jmp down_loop
 
 up_left_frame:
-    dec DWORD[ebp-8]
+    dec DWORD[ebp-8] ;go left
     mov eax, [ebp-44]
-    mov [ebp-12], eax
+    mov [ebp-12], eax ;load previous y value
 ulf_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp eax, [ebp-52]
-    je left_again
+    je left_again ;it reached intersection point, go left again
     call get_pixel
     cmp bl, 0
-    je not_found
-    dec DWORD[ebp-12]
+    je not_found ;if pixel is black, not found
+    dec DWORD[ebp-12] ; go down
     jmp ulf_loop
 
 left_again:
-    mov [ebp-56], ebx
+    mov [ebp-56], ebx ;save x coord
 la_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp ebx, [ebp-36]
-    je la_frame
+    je la_frame ;if it reached the left border, got o laframe
     call get_pixel
-    cmp bl, 0
+    cmp bl, 0 ;if pixel not black, not found
     jne not_found
-    dec DWORD[ebp-8]
+    dec DWORD[ebp-8] ;go left
     jmp la_loop
 
 la_frame:
-    inc DWORD[ebp-12]
-    mov ebx, [ebp-56]
+    inc DWORD[ebp-12] ;go one row up
+    mov ebx, [ebp-56] ;load previously saved x coord
     mov [ebp-8], ebx
 laf_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp ebx, [ebp-36]
-    je down_again
+    je down_again ;if reached left border, go down again
     call get_pixel
     cmp bl, 0
-    je not_found
-    dec DWORD[ebp-8]
+    je not_found ;if the pixel is black, not found
+    dec DWORD[ebp-8] ;go left
     jmp laf_loop
 
 down_again:
-    dec DWORD[ebp-12]
+    dec DWORD[ebp-12] ;correct y cord
     mov eax, [ebp-12]
-    mov [ebp-60], eax
+    mov [ebp-60], eax ;save y cord
 da_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp eax, [ebp-24]
-    je da_frame
+    je da_frame ;if reached bottom, down_again frame
     call get_pixel
-    cmp bl, 0
+    cmp bl, 0 ;if pixel is not zero, not found
     jne not_found
     mov edi, [ebp-8]
     mov esi, [ebp-12]
     mov edx, [ebp-20]
     sub edx, [ebp-48]
     mov [ebp-64], edx
-    call cr
-    dec DWORD[ebp-12]
+    call cr   ; check if all the pixels right of the current one, until the intersection are black
+    dec DWORD[ebp-12] ; go down
     jmp da_loop
 
 
@@ -302,10 +304,10 @@ cr_loop:
     inc edi
     mov ebx, edi
     mov eax, esi
-    cmp ebx, edx
+    cmp ebx, edx ;check if reached intersection line
     je end_cr
     call get_pixel
-    cmp bl, 0
+    cmp bl, 0 ;not black, not found
     jne not_found_cr
     jmp cr_loop
 
@@ -329,19 +331,19 @@ da_frame:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp ebx, 0
-    je marker_found
+    je marker_found ;we are at the left border, marker found
     mov eax, [ebp-60]
     mov [ebp-12], eax
-    dec DWORD[ebp-8]
+    dec DWORD[ebp-8] ;correct x cord
 daf_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp eax, [ebp-24]
-    je marker_found
+    je marker_found ;if reached bottom, marker found
     call get_pixel
     cmp bl, 0
-    je not_found
-    dec DWORD[ebp-12]
+    je not_found ;if pixel is black, not found
+    dec DWORD[ebp-12] ;go down
     jmp daf_loop
 
 marker_found:
@@ -360,7 +362,7 @@ marker_found:
     jmp not_found
 
 not_found:
-    inc DWORD[ebp-20]
+    inc DWORD[ebp-20] ;go one pixel to the left on the saved ones
     mov eax, [ebp-20]
     mov [ebp-8], eax
     mov eax, [ebp-24]
@@ -391,9 +393,9 @@ cd_loop:
     mov ebx, edi
     mov eax, esi
     cmp eax, edx
-    je end_cd
+    je end_cd ;if reached bottom of the marker, end cd
     call get_pixel
-    cmp bl, 0
+    cmp bl, 0 ;if pixel not black, not found
     jne not_found_cd
     jmp cd_loop
 
@@ -416,12 +418,12 @@ not_found_cd:
 get_pixel:
     push ebp
     mov ebp, esp
-    imul eax, WIDTH
-    add eax, ebx
-    imul eax, 3
+    imul eax, WIDTH ; t = y*width
+    add eax, ebx ; t+= x
+    imul eax, 3 ;t*3 because a pixel is 3 bytes
     add eax, ecx
     mov ebx, 0
-    add bl, BYTE[eax]
+    add bl, BYTE[eax] ;add R,G and B and if the pixel is not black, the value of bl will not be 0 after the function
     inc eax
     add bl, BYTE[eax]
     inc eax
