@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     int numOfMarkers = markers(bitmap, x_pos, y_pos);
     if (numOfMarkers != 0)
     {
-        for (size_t i = 0; x_pos != '\0'; ++i)
+        for (size_t i = 0; x_pos[i] != '\0'; ++i)
         {
             std::cout << "Marker found!: ";
             std::cout << '(' << (x_pos[i]) << ',';

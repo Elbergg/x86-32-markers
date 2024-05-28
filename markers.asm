@@ -1,6 +1,6 @@
 %define WIDTH 320
 %define HEIGHT 240
-%define TOP_BORDER 319
+%define BOTTOM_BORDER 239
 %define RIGHT_BORDER 319
 
 section .text
@@ -8,7 +8,7 @@ global markers
 markers:
     push ebp
     mov ebp, esp
-    sub esp, 68
+    sub esp, 72
     push ebx
     push edi
     push esi
@@ -30,7 +30,9 @@ markers:
     mov DWORD[ebp-60], 0 ; saved y cord in da
     mov DWORD[ebp-64], 0 ; x cord of inner intersection
     mov eax, [ebp+12]
-    mov DWORD[ebp-68], eax ;address of output buffer
+    mov DWORD[ebp-68], eax ;address of output_x buffer
+    mov eax, [ebp+16]
+    mov DWORD[ebp-72], eax ;address of output_x buffer
     jmp find_black
     jmp exit
 
@@ -86,7 +88,7 @@ b_loop:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     cmp ebx, [ebp-20]
-    jg end_bf ;if we reached the return x cord 
+    jg end_bf ;if we reached the return x cord
     call get_pixel
     cmp bl, 0
     je not_found ;if pixel is black not found
@@ -101,20 +103,20 @@ end_bf:
     mov [ebp-12], eax
     mov edi, [ebp-16]
     test edi, 1
-    jnz not_found ;if length is not an even number not found  
-    shr edi, 1 ;divide length by 2 
+    jnz not_found ;if length is not an even number not found
+    shr edi, 1 ;divide length by 2
     jmp go_up
 
 
 
 go_up:
     inc DWORD[ebp-28] ; inc height counter
-    mov ebx, [ebp-8] 
+    mov ebx, [ebp-8]
     mov eax, [ebp-12]
-    call get_pixel 
+    call get_pixel
     cmp bl, 0
     jne not_found ; if pixel not black go not found
-    cmp [ebp-28], edi ; check if 
+    cmp [ebp-28], edi ; check if
     je end_up
     inc DWORD[ebp-12]
     jmp go_up
@@ -349,10 +351,11 @@ marker_found:
     mov DWORD[eax], ebx
     add DWORD[ebp-68], 4
     add eax, 4
-    mov ebx, 239
+    mov ebx, BOTTOM_BORDER
     sub ebx, [ebp-24]
+    mov eax, [ebp-72]
     mov DWORD[eax], ebx
-    add DWORD[ebp-68], 4
+    add DWORD[ebp-72], 4
     add eax, 4
     jmp not_found
 
