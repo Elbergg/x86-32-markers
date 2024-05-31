@@ -1,4 +1,4 @@
-%define WIDTH 320
+%define width 320
 %define HEIGHT 240
 %define BOTTOM_BORDER 239
 %define RIGHT_BORDER 319
@@ -8,7 +8,7 @@ global markers
 markers:
     push ebp
     mov ebp, esp
-    sub esp, 72
+    sub esp, 88
     push ebx
     push edi
     push esi
@@ -33,15 +33,44 @@ markers:
     mov DWORD[ebp-68], eax ;address of output_x buffer
     mov eax, [ebp+16]
     mov DWORD[ebp-72], eax ;address of output_x buffer
+    mov DWORD[ebp-76], 0 ;heigth of image
+    mov DWORD[ebp-80], 0 ;width of image
+    mov DWORD[ebp-84], 0 ;right border
+    mov DWORD[ebp-88], 0 ;top border
+    jmp get_info
     jmp find_black
     jmp exit
+
+get_info:
+    xor eax, eax
+    mov ecx, DWORD[ebp+8]  ;load [ebp-80]
+    mov al, BYTE[ecx+19]
+    shl eax, 8
+    mov al, BYTE[ecx+18]
+    mov DWORD[ebp-80], eax
+    xor eax, eax
+    mov al, BYTE[ecx+23] ;load heigth
+    shl eax, 8
+    mov al, BYTE[ecx+22]
+    mov DWORD[ebp-76], eax
+    xor eax, eax
+    mov al, BYTE[ecx+11] ;data offset
+    shl eax, 8
+    mov al, BYTE[ecx+10]
+    add ecx, eax ;first pixel
+    mov eax, DWORD[ebp-80]
+    sub eax, 1
+    mov DWORD[ebp-84], eax
+    mov eax, DWORD[ebp-76]
+    sub eax, 1
+    mov DWORD[ebp-88], eax
+
 
 find_black:
     mov eax, [ebp-12] ;load eax with y cord
     mov ebx, [ebp-8] ;load ebx with x cord
-    cmp ebx, WIDTH ;check if reached right border
+    cmp ebx, [ebp-80] ;check if reached right border
     je next_row ;if so go one row up
-    mov ecx, DWORD[ebp+8] ;load ecx with address of bmp buffer
     call get_pixel ;check pixel under current ebx, eax coords
     cmp bl, 0 ;check if its black
     je go_right ;if so go right
@@ -59,7 +88,7 @@ next_row:
 go_right:
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
-    cmp ebx, WIDTH
+    cmp ebx, [ebp-80]
     je end_right ;if right border end_right
     call get_pixel
     cmp bl, 0
@@ -306,7 +335,7 @@ cr_loop:
     mov eax, esi
     cmp ebx, edx ;check if reached intersection line
     je end_cr
-    call get_pixel
+    call get_pixel_from_inside
     cmp bl, 0 ;not black, not found
     jne not_found_cr
     jmp cr_loop
@@ -394,7 +423,7 @@ cd_loop:
     mov eax, esi
     cmp eax, edx
     je end_cd ;if reached bottom of the marker, end cd
-    call get_pixel
+    call get_pixel_from_inside
     cmp bl, 0 ;if pixel not black, not found
     jne not_found_cd
     jmp cd_loop
@@ -418,7 +447,25 @@ not_found_cd:
 get_pixel:
     push ebp
     mov ebp, esp
-    imul eax, WIDTH ; t = y*width
+    imul eax, [ebp+32] ; t = y*width
+    add eax, ebx ; t+= x
+    imul eax, 3 ;t*3 because a pixel is 3 bytes
+    add eax, ecx
+    mov ebx, 0
+    add bl, BYTE[eax] ;add R,G and B and if the pixel is not black, the value of bl will not be 0 after the function
+    inc eax
+    add bl, BYTE[eax]
+    inc eax
+    add bl, BYTE[eax]
+    inc eax
+    mov esp, ebp
+    pop ebp
+    ret
+
+get_pixel_from_inside:
+    push ebp
+    mov ebp, esp
+    imul eax, [ebp+48] ; t = y*width
     add eax, ebx ; t+= x
     imul eax, 3 ;t*3 because a pixel is 3 bytes
     add eax, ecx

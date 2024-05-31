@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <string.h>
 #define fname "source.bmp"
-#define HEIGHT 240
-#define WIDTH 320
-#define BYTES_PER_ROW 960
+// #define HEIGHT 240
+// #define WIDTH 320
+// #define BYTES_PER_ROW 960
 #define HEADER_SIZE 54
 extern "C" int markers(char *bmp, unsigned int *x_pos, unsigned int *y_pos);
 int main(int argc, char *argv[])
@@ -24,11 +24,16 @@ int main(int argc, char *argv[])
     }
     char header[HEADER_SIZE];
     fileHandler.read(header, HEADER_SIZE);
-    uint32_t numOfPix = HEIGHT * WIDTH;
+    auto fileSize = *reinterpret_cast<uint32_t *>(&header[2]);
     auto dataOffset = *reinterpret_cast<uint32_t *>(&header[10]);
-    fileHandler.seekg(dataOffset);
-    char bitmap[3 * numOfPix];
-    fileHandler.read(bitmap, 3 * numOfPix);
+    auto width = *reinterpret_cast<uint32_t *>(&header[18]);
+    auto height = *reinterpret_cast<uint32_t *>(&header[22]);
+    // uint32_t numOfPix = height * width;
+    // fileHandler.seekg(dataOffset);
+    char bitmap[fileSize];
+    std::ifstream fileHandle2;
+    fileHandle2.open(fname, std::ios::binary);
+    fileHandle2.read(bitmap, fileSize);
     unsigned int x_pos[200] = {0};
     unsigned int y_pos[200] = {0};
     int numOfMarkers = markers(bitmap, x_pos, y_pos);
