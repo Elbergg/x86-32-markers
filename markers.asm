@@ -8,7 +8,7 @@ global markers
 markers:
     push ebp
     mov ebp, esp
-    sub esp, 88
+    sub esp, 92
     push ebx
     push edi
     push esi
@@ -36,14 +36,15 @@ markers:
     mov DWORD[ebp-76], 0 ;heigth of image
     mov DWORD[ebp-80], 0 ;width of image
     mov DWORD[ebp-84], 0 ;right border
-    mov DWORD[ebp-88], 0 ;top border
+    mov DWORD[ebp-88], 0 ;bottom border
+    mov DWORD[ebp-92], 0 ;bytes per row
     jmp get_info
     jmp find_black
     jmp exit
 
 get_info:
     xor eax, eax
-    mov ecx, DWORD[ebp+8]  ;load [ebp-80]
+    mov ecx, DWORD[ebp+8]  ;load width
     mov al, BYTE[ecx+19]
     shl eax, 8
     mov al, BYTE[ecx+18]
@@ -58,12 +59,22 @@ get_info:
     shl eax, 8
     mov al, BYTE[ecx+10]
     add ecx, eax ;first pixel
-    mov eax, DWORD[ebp-80]
+    mov eax, DWORD[ebp-80] ;right
     sub eax, 1
-    mov DWORD[ebp-84], eax
+    mov DWORD[ebp-84], eax ;right border
     mov eax, DWORD[ebp-76]
     sub eax, 1
-    mov DWORD[ebp-88], eax
+    mov DWORD[ebp-88], eax ;top border
+    mov eax, DWORD[ebp-80]
+    imul eax, 24 ; calculatirng byter per pixel  - 3*8*width - Bitperpixel*width
+    add eax, 31  ; Bitperpixel*width+31
+    push ecx
+    xor edx, edx
+    mov ecx, 32
+    div ecx ; (Bitperpixel*width+31) /32
+    shl eax, 2 ; (Bitperpixel*width+31) /32 *4
+    mov DWORD[ebp-92], eax
+    pop ecx
 
 
 find_black:
@@ -81,7 +92,7 @@ next_row:
     inc DWORD[ebp-12] ;inc y coord
     mov DWORD[ebp-8], 0 ;reset x cord
     mov eax, [ebp-12]
-    cmp eax, HEIGHT ;if reached the top exit
+    cmp eax, [ebp-76] ;if reached the top exit
     je exit
     jmp find_black
 
@@ -382,7 +393,7 @@ marker_found:
     mov DWORD[eax], ebx
     add DWORD[ebp-68], 4
     add eax, 4
-    mov ebx, BOTTOM_BORDER
+    mov ebx, DWORD[ebp-88]
     sub ebx, [ebp-24]
     mov eax, [ebp-72]
     mov DWORD[eax], ebx
@@ -447,10 +458,10 @@ not_found_cd:
 get_pixel:
     push ebp
     mov ebp, esp
-    imul eax, [ebp+32] ; t = y*width
-    add eax, ebx ; t+= x
-    imul eax, 3 ;t*3 because a pixel is 3 bytes
-    add eax, ecx
+    imul eax, [ebp+24] ; t = y*bytes per row
+    imul ebx, 3
+    add eax, ebx ; t+= 3*x
+    add eax, ecx ; add first pixel address
     mov ebx, 0
     add bl, BYTE[eax] ;add R,G and B and if the pixel is not black, the value of bl will not be 0 after the function
     inc eax
@@ -465,10 +476,10 @@ get_pixel:
 get_pixel_from_inside:
     push ebp
     mov ebp, esp
-    imul eax, [ebp+48] ; t = y*width
-    add eax, ebx ; t+= x
-    imul eax, 3 ;t*3 because a pixel is 3 bytes
-    add eax, ecx
+    imul eax, [ebp+40] ; t = y*bytes per row
+    imul ebx, 3
+    add eax, ebx ; t+= 3*x
+    add eax, ecx ; add first pixel address
     mov ebx, 0
     add bl, BYTE[eax] ;add R,G and B and if the pixel is not black, the value of bl will not be 0 after the function
     inc eax

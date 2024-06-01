@@ -24,12 +24,17 @@ int main(int argc, char *argv[])
     }
     char header[HEADER_SIZE];
     fileHandler.read(header, HEADER_SIZE);
+    if (header[0] != 0x42 || header[1] != 0x4D)
+    {
+        std::cout << "File should be a bnp\n";
+        return -3;
+    }
     auto fileSize = *reinterpret_cast<uint32_t *>(&header[2]);
     auto dataOffset = *reinterpret_cast<uint32_t *>(&header[10]);
     auto width = *reinterpret_cast<uint32_t *>(&header[18]);
+    std::cout << "Width: " << width << std::endl;
     auto height = *reinterpret_cast<uint32_t *>(&header[22]);
-    // uint32_t numOfPix = height * width;
-    // fileHandler.seekg(dataOffset);
+    std::cout << "Height: " << height << std::endl;
     char bitmap[fileSize];
     std::ifstream fileHandle2;
     fileHandle2.open(fname, std::ios::binary);
