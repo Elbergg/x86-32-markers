@@ -1,7 +1,4 @@
-%define width 320
-%define HEIGHT 240
-%define BOTTOM_BORDER 239
-%define RIGHT_BORDER 319
+
 
 section .text
 global markers
@@ -19,7 +16,7 @@ markers:
     mov DWORD[ebp-16], 0 ;bottom length
     mov DWORD[ebp-20], 0 ;return x cord
     mov DWORD[ebp-24], 0 ;return y cord
-    mov DWORD[ebp-28], 0 ;height
+    mov DWORD[ebp-28], 0 ;height of marker
     mov DWORD[ebp-32], 0 ;saved y cord
     mov DWORD[ebp-36], 0 ;left x cord
     mov DWORD[ebp-40], 0 ; saved x cord in urf
@@ -44,7 +41,7 @@ markers:
 
 get_info:
     xor eax, eax
-    mov ecx, DWORD[ebp+8]  ;load width
+    mov ecx, DWORD[ebp+8]  ;load [ebp-80]
     mov al, BYTE[ecx+19]
     shl eax, 8
     mov al, BYTE[ecx+18]
@@ -66,13 +63,13 @@ get_info:
     sub eax, 1
     mov DWORD[ebp-88], eax ;top border
     mov eax, DWORD[ebp-80]
-    imul eax, 24 ; calculatirng byter per pixel  - 3*8*width - Bitperpixel*width
-    add eax, 31  ; Bitperpixel*width+31
+    imul eax, 24 ; calculatirng byter per pixel  - 3*8*[ebp-80] - Bitperpixel*[ebp-80]
+    add eax, 31  ; Bitperpixel*[ebp-80]+31
     push ecx
     xor edx, edx
     mov ecx, 32
-    div ecx ; (Bitperpixel*width+31) /32
-    shl eax, 2 ; (Bitperpixel*width+31) /32 *4
+    div ecx ; (Bitperpixel*[ebp-80]+31) /32
+    shl eax, 2 ; (Bitperpixel*[ebp-80]+31) /32 *4
     mov DWORD[ebp-92], eax
     pop ecx
 
@@ -150,7 +147,7 @@ end_bf:
 
 
 go_up:
-    inc DWORD[ebp-28] ; inc height counter
+    inc DWORD[ebp-28] ; inc [ebp-76] counter
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
     call get_pixel
@@ -166,14 +163,14 @@ end_up:
     inc DWORD[ebp-12] ; go one row up
     mov ebx, [ebp-8]
     mov eax, [ebp-12]
-    cmp eax, HEIGHT ; check if we are at top, if so just go left
+    cmp eax, [ebp-76] ; check if we are at top, if so just go left
     je go_left
     mov [ebp-32], eax ; save y cord
     call get_pixel ;check if pixel above is black
     cmp bl, 0
     je not_found ;if its black not found
     mov ebx, [ebp-8]
-    cmp ebx, RIGHT_BORDER ; if we are at the right border go left
+    cmp ebx, [ebp-84] ; if we are at the right border go left
     je go_left
     jmp right_frame
 
@@ -234,7 +231,7 @@ urf_loop:
     mov eax, [ebp-12]
     cmp ebx, [ebp-40] ;if reached end of urf, go down
     je go_down
-    cmp eax, HEIGHT
+    cmp eax, [ebp-76]
     je go_down_border
     call get_pixel ;if pixel is black, not found
     cmp bl, 0
@@ -410,12 +407,12 @@ not_found:
     mov DWORD[ebp-16], 0 ;bottom length
     mov DWORD[ebp-20], 0 ;return x cord
     mov DWORD[ebp-24], 0 ;return y cord
-    mov DWORD[ebp-28], 0 ;height
+    mov DWORD[ebp-28], 0 ;[ebp-76]
     mov DWORD[ebp-32], 0 ;saved y cord
     mov DWORD[ebp-36], 0 ;left x cord
     mov DWORD[ebp-40], 0 ; saved x cord in urf
     mov DWORD[ebp-44], 0 ;saved y cord in down loop
-    mov DWORD[ebp-48], 0 ; arm_width
+    mov DWORD[ebp-48], 0 ; arm_[ebp-80]
     mov DWORD[ebp-52], 0 ; a point at which the inner arms should intersect
     mov DWORD[ebp-56], 0 ; saved x cord in left again
     mov DWORD[ebp-60], 0 ; saved y cord in da
